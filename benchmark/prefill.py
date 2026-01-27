@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
 import random
 import argparse
@@ -207,7 +209,7 @@ if __name__ == "__main__":
     # FastKV
     parser.add_argument("--tsp_len", type=int, default=2048, help="tsp_len used for constant eviction mode")
     parser.add_argument("--tsp_rate", type=float, default=0.2, help="tsp_rate used for proportional eviction mode")
-    parser.add_argument("--tsp_idx", type=int, default=15, help="")
+    parser.add_argument("--tsp_idx", type=int, default=13, help="")
 
     # GemFilter
     parser.add_argument("--filter_idx", type=int, default=13, help="")
@@ -221,9 +223,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     set_seed(args.seed)
 
-    from baselines.monkeypatch import replace_llama, replace_mistral
-    replace_llama(args.method)
-    replace_mistral(args.method)
+    #from baselines.monkeypatch import replace_llama, replace_mistral, replace_qwen
+    from baselines.monkeypatch import replace_qwen
+    #replace_llama(args.method)
+    #replace_mistral(args.method)
+    replace_qwen(args.method)
     
     if args.method == "pyramidinfer":
         args.attn_implementation = "eager"
@@ -249,7 +253,8 @@ if __name__ == "__main__":
         tokenizer.pad_token_id = tokenizer.eos_token_id
         
 
-    context_lengths = [8192, 32768, 131072]
+    #context_lengths = [8192, 32768, 131072]
+    context_lengths = [2048]
     # Limit H2O to 8192 context length for prefill as requested
     if args.method == "h2o":
         context_lengths = [8192]

@@ -1,0 +1,7 @@
+# Prefill Benchmark Summary
+# Model: /root/autodl-tmp/models/Qwen3-0.6B
+# Method: fastkv | Runs: 1
+# TSP Rate: 0.1 | Retention Rate: 0.8 | Eviction: constant
+# Started: 2026-01-27 00:58:29
+
+Context=2048 | AvgLatency=0.0786s | 95%CI±0.0000s | Std=0.0000s | MaxMem=1.85 GB

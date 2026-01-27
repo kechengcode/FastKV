@@ -101,6 +101,32 @@ def replace_mistral(method):
     if method not in ["fullkv"]:
         transformers.models.mistral.modeling_mistral.MistralForCausalLM.prepare_inputs_for_generation = prepare_inputs_for_generation_mistral
 
+def replace_qwen(method):
+    import transformers.models.qwen3.modeling_qwen3
+    if method == "fastkv":
+        from baselines.fastkv.qwen3_model import qwen3_model_forward_fastkv, qwen3_decoderlayer_forward_fastkv, Qwen3FastKVAttention
+        transformers.models.qwen3.modeling_qwen3.Qwen3Model.forward = qwen3_model_forward_fastkv
+        transformers.models.qwen3.modeling_qwen3.Qwen3DecoderLayer.forward = qwen3_decoderlayer_forward_fastkv
+        transformers.models.qwen3.modeling_qwen3.Qwen3Attention = Qwen3FastKVAttention
+    
+    elif method == "h2o":
+        from baselines.h2o.qwen3_model import qwen3_attn_forward_H2O
+        transformers.models.qwen3.modeling_qwen3.Qwen3Attention.forward = qwen3_attn_forward_H2O
+    
+    elif method == "snapkv":
+        from baselines.snapkv.qwen3_model import qwen3_attn_forward_SnapKV
+        transformers.models.qwen3.modeling_qwen3.Qwen3Attention.forward = qwen3_attn_forward_SnapKV
+
+    elif method == "fullkv":
+        # transformers.models.qwen2.modeling_qwen2.Qwen2Model.forward = qwen2_model_forward_general
+        pass
+
+    else:
+        raise NotImplementedError(f"No method found for {method}")
+    
+    if method not in ["fullkv"]:
+        transformers.models.qwen3.modeling_qwen3.Qwen3ForCausalLM.prepare_inputs_for_generation = prepare_inputs_for_generation_llama
+
 def set_model(model, args):
     if args.max_capacity_prompts != -1:
         max_capacity_prompts = args.max_capacity_prompts
@@ -264,7 +290,7 @@ def prepare_inputs_for_generation_llama(
         
         ##### for 4.45 compatibility
         if past_key_values.get_seq_length() == 0:
-            if isinstance(past_key_values.key_cache[0], list):
+            if len(past_key_values.key_cache) > 0 and isinstance(past_key_values.key_cache[0], list):
                 for layer in self.model.layers:
                     layer.self_attn.kv_seq_len = 0
         

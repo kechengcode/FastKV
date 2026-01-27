@@ -61,7 +61,41 @@ class H2OKVCluster():
         if q_len < self.max_capacity_prompt:
             return key_states, value_states
         else:
-            attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(head_dim)
+            if num_key_value_groups > 1 and key_states.shape[1] != query_states.shape[1]:
+                bsz, n_heads, q_len, head_dim = query_states.shape
+                n_kv_heads = key_states.shape[1]
+                query_grouped = query_states.view(bsz, n_kv_heads, num_key_value_groups, q_len, head_dim)
+                
+                chunk_size = 256
+                attn_weights_sum = torch.zeros((bsz, n_kv_heads, key_states.shape[2]), device=key_states.device, dtype=query_states.dtype)
+                
+                for i in range(0, q_len, chunk_size):
+                    end = min(i + chunk_size, q_len)
+                    q_chunk = query_grouped[:, :, :, i:end, :] 
+                    chunk_scores = torch.matmul(q_chunk, key_states.unsqueeze(2).transpose(-1, -2)) / math.sqrt(head_dim)
+                    chunk_probs = nn.functional.softmax(chunk_scores, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                    attn_weights_sum += chunk_probs.sum(dim=2).sum(dim=2)
+
+                attn_weights_sum = attn_weights_sum[..., :-self.window_size]
+                attn_cache = attn_weights_sum
+                indices = attn_cache.topk(self.max_capacity_prompt - self.window_size, dim=-1).indices
+                indices = indices.unsqueeze(-1).expand(-1, -1, -1, head_dim)
+
+                if self.merge is not None:
+                    key_states, value_states = merge_kv(key_states, value_states, indices, self.window_size, self.merge)
+                else:
+                    k_past_compress = key_states[:, :, :-self.window_size, :].gather(dim = 2, index = indices)
+                    v_past_compress = value_states[:, :, :-self.window_size, :].gather(dim = 2, index = indices)
+                    k_cur = key_states[:, :, -self.window_size:, :]
+                    v_cur = value_states[:, :, -self.window_size:, :]
+                    key_states = torch.cat([k_past_compress, k_cur], dim = 2)
+                    value_states = torch.cat([v_past_compress, v_cur], dim = 2)
+                
+                return key_states, value_states
+
+            else:
+                attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(head_dim)
+
             mask = torch.full((self.window_size, self.window_size), torch.finfo(attn_weights.dtype).min, device=attn_weights.device)
             mask_cond = torch.arange(mask.size(-1), device=attn_weights.device)
             mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)

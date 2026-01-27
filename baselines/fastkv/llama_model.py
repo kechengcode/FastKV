@@ -12,7 +12,7 @@ from transformers.models.llama.modeling_llama import (
     apply_rotary_pos_emb,
     repeat_kv,
     LlamaAttention,
-    LlamaFlashAttention2
+    # LlamaFlashAttention2
 )
 from transformers.utils import (
     logging,

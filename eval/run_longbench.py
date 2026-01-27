@@ -71,7 +71,8 @@ model2maxlen = {
     "llama-3": 7950,
     "mistral": 127500,
     "ministral": 127500,
-    "llama-3.1": 127500
+    "llama-3.1": 127500,
+    "qwen": 128000
 }
 
 
@@ -297,9 +298,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     set_seed(args.seed)
 
-    from baselines.monkeypatch import replace_llama, replace_mistral
-    replace_llama(args.method)
-    replace_mistral(args.method)
+    # from baselines.monkeypatch import replace_llama, replace_mistral, replace_qwen
+    # replace_llama(args.method)
+    # replace_mistral(args.method)
+    from baselines.monkeypatch import replace_llama, replace_mistral, replace_qwen
+    if "llama" in args.model_path.lower():
+        replace_llama(args.method)
+    elif "mistral" in args.model_path.lower() or "ministral" in args.model_path.lower():
+        replace_mistral(args.method)
+    elif "qwen" in args.model_path.lower():
+        replace_qwen(args.method)
+    else:
+        print(f"Warning: No explicit monkeypatch for model path {args.model_path}")
     
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -326,6 +336,9 @@ if __name__ == "__main__":
     
     save_dir = args.save_dir
     
+    if args.dataset:
+        datasets = [args.dataset]
+
     for idx, dataset in enumerate(datasets):
         if args.eviction_mode == "constant":
             print(f"Working on max_capacity_prompts {args.max_capacity_prompts} dataset {dataset} - {idx}/{len(datasets)}")

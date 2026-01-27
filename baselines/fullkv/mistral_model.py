@@ -13,7 +13,7 @@ from transformers.models.mistral.modeling_mistral import (
     apply_rotary_pos_emb,
     repeat_kv,
     MistralAttention,
-    MistralFlashAttention2
+    # MistralFlashAttention2
 )
 from transformers.utils import (
     logging,

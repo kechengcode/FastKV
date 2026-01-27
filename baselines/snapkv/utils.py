@@ -69,7 +69,17 @@ class SnapKVCluster():
         if q_len < self.max_capacity_prompt:
             return key_states, value_states
         else:
-            attn_weights = torch.matmul(query_states[..., -self.window_size:, :], key_states.transpose(2, 3)) / math.sqrt(head_dim)
+            if num_key_value_groups > 1 and key_states.shape[1] != query_states.shape[1]:
+                bsz, n_heads, q_len, head_dim = query_states.shape
+                n_kv_heads = key_states.shape[1]
+                query_grouped = query_states.view(bsz, n_kv_heads, num_key_value_groups, q_len, head_dim)
+                # SnapKV uses only the last window_size queries
+                query_grouped = query_grouped[..., -self.window_size:, :] 
+                attn_weights = torch.matmul(query_grouped, key_states.unsqueeze(2).transpose(-1, -2)) / math.sqrt(head_dim)
+                attn_weights = attn_weights.mean(dim=2)
+            else:
+                attn_weights = torch.matmul(query_states[..., -self.window_size:, :], key_states.transpose(2, 3)) / math.sqrt(head_dim)
+
             mask = torch.full((self.window_size, self.window_size), torch.finfo(attn_weights.dtype).min, device=attn_weights.device)
             mask_cond = torch.arange(mask.size(-1), device=attn_weights.device)
             mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)

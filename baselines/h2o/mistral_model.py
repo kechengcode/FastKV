@@ -10,7 +10,7 @@ from transformers.models.mistral.modeling_mistral import (
     apply_rotary_pos_emb,
     repeat_kv,
     MistralAttention,
-    MistralFlashAttention2
+    # MistralFlashAttention2
 )
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask, _prepare_4d_causal_attention_mask_for_sdpa
 from transformers.modeling_outputs import BaseModelOutputWithPast

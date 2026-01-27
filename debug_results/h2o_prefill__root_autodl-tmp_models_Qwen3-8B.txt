@@ -1,0 +1,7 @@
+# Prefill Benchmark Summary
+# Model: /root/autodl-tmp/models/Qwen3-8B
+# Method: h2o | Runs: 1
+# Retention Rate: 0.8 | Eviction: constant
+# Started: 2026-01-27 16:23:36
+
+Context=1024 | AvgLatency=0.1405s | 95%CI±0.0000s | Std=0.0000s | MaxMem=17.63 GB
