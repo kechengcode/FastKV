@@ -1,30 +1,30 @@
-# Test fullkv (Base)
-# CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
-#     --method fullkv \
-#     --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-#     --attn_implementation flash_attention_2 \
-#     --save_dir "outputs/results_longbench_qwen3" \
-#     --eviction_mode proportional \
-#     --dataset samsum \
-#     --retain_rate 0.1
+#Test fullkv (Base)
+CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
+    --method fullkv \
+    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
+    --attn_implementation "flash_attention_2" \
+    --save_dir "outputs/results_longbench_qwen3" \
+    --eviction_mode proportional \
+    --dataset samsum \
+    --retain_rate 0.1
 
-# # Test FastKV
-# CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
-#     --method fastkv \
-#     --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-#     --attn_implementation flash_attention_2 \
-#     --save_dir "outputs/results_longbench_qwen3" \
-#     --eviction_mode proportional \
-#     --tsp_rate 0.2 \
-#     --tsp_idx 15 \
-#     --dataset samsum \
-#     --retain_rate 0.1
+#Test FastKV
+CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
+    --method fastkv \
+    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
+    --attn_implementation eager \
+    --save_dir "outputs/results_longbench_qwen3" \
+    --eviction_mode proportional \
+    --tsp_rate 0.2 \
+    --tsp_idx 17 \
+    --dataset samsum \
+    --retain_rate 0.1
 
 # Test SnapKV
 CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
     --method snapkv \
     --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-    --attn_implementation flash_attention_2 \
+    --attn_implementation eager \
     --save_dir "outputs/results_longbench_qwen3" \
     --eviction_mode proportional \
     --dataset samsum \
@@ -37,7 +37,7 @@ CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
 CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
     --method h2o \
     --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-    --attn_implementation flash_attention_2 \
+    --attn_implementation eager \
     --save_dir "outputs/results_longbench_qwen3" \
     --eviction_mode proportional \
     --dataset samsum \

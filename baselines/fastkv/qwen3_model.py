@@ -11,6 +11,7 @@ from transformers.models.qwen3.modeling_qwen3 import (
     Qwen3RotaryEmbedding,
     apply_rotary_pos_emb,
     eager_attention_forward,
+    repeat_kv,
 )
 from transformers.cache_utils import Cache, DynamicCache
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
@@ -61,28 +62,21 @@ class Qwen3FastKVAttention(Qwen3Attention):
         else:
             self.tsp_idx = None
 
-        attention_interface: Callable = eager_attention_forward
-        if self.config._attn_implementation != "eager":
-            if self.config._attn_implementation == "sdpa" and kwargs.get("output_attentions", False):
-                logger.warning_once(
-                    "`torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True`. Falling back to "
-                    'eager attention. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.'
-                )
-            else:
-                attention_interface = ALL_ATTENTION_FUNCTIONS[self.config._attn_implementation]
-
-        attn_output, attn_weights = attention_interface(
-            self,
+        # Use SDPA instead of eager_attention_forward to save memory
+        is_causal = query_states.shape[2] > 1
+        key_states = repeat_kv(key_states, self.num_key_value_groups)
+        value_states = repeat_kv(value_states, self.num_key_value_groups)
+        attn_output = torch.nn.functional.scaled_dot_product_attention(
             query_states,
             key_states,
             value_states,
-            attention_mask,
-            dropout=0.0 if not self.training else self.attention_dropout,
-            scaling=self.scaling,
-            sliding_window=self.sliding_window,  # diff with Llama
-            **kwargs,
+            attn_mask=None,
+            dropout_p=self.attention_dropout if self.training else 0.0,
+            is_causal=is_causal
         )
-
+        attn_weights = None # We typically don't need weights if output_attentions=False
+        
+        attn_output = attn_output.transpose(1, 2).contiguous()
         attn_output = attn_output.reshape(*input_shape, -1).contiguous()
         attn_output = self.o_proj(attn_output)
         return attn_output, attn_weights
@@ -249,6 +243,14 @@ def qwen3_model_forward_fastkv(
                     # So it uses input embeddings to determine dtype/device probably?
                     # Let's check layer_outputs[0], which is the new hidden_states.
                     position_embeddings = self.rotary_emb(layer_outputs[0], position_ids)
+                    
+                    # [FastKV] Update causal mask for compressed sequence
+                    if causal_mask is not None:
+                        new_len = layer_outputs[0].shape[1]
+                        # Assuming causal_mask is (B, 1, Q, K) and Q=K
+                        # We slice to (B, 1, new_len, new_len)
+                        if causal_mask.shape[-1] >= new_len:
+                             causal_mask = causal_mask[:, :, :new_len, :new_len]
 
             hidden_states = layer_outputs[0]
 

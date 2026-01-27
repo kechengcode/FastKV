@@ -91,30 +91,23 @@ def qwen3_attn_forward_SnapKV(
         past_key_value._seen_tokens = self.kv_seq_len
 
 
-    # Standard Attention Calculation
-    # We use Strict Llama-aligned Attention Calculation without Chunking
-    attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
-
-    if attention_mask is not None:
-        causal_mask = attention_mask[:, :, :, : key_states.shape[-2]]
-        attn_weights = attn_weights + causal_mask
-
-    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-    attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
-    attn_output = torch.matmul(attn_weights, value_states)
-
-
-    if attn_output.size() != (input_shape[0], self.config.num_attention_heads, input_shape[1], self.head_dim):
-        raise ValueError(
-            f"`attn_output` should be of size {(input_shape[0], self.config.num_attention_heads, input_shape[1], self.head_dim)}, but is"
-            f" {attn_output.size()}"
-        )
+    # Standard Attention Calculation optimized with SDPA
+    is_causal = query_states.shape[2] > 1
+    # key_states already repeated earlier in this function
+    # key_states = repeat_kv(key_states, self.num_key_value_groups)
+    # value_states = repeat_kv(value_states, self.num_key_value_groups)
+    attn_output = torch.nn.functional.scaled_dot_product_attention(
+        query_states,
+        key_states,
+        value_states,
+        attn_mask=None,
+        dropout_p=self.attention_dropout if self.training else 0.0,
+        is_causal=is_causal
+    )
+    attn_weights = None
 
     attn_output = attn_output.transpose(1, 2).contiguous()
     attn_output = attn_output.reshape(*input_shape, -1).contiguous()
     attn_output = self.o_proj(attn_output)
-
-    if not output_attentions:
-        attn_weights = None
 
     return attn_output, attn_weights

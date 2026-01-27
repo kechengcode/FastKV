@@ -345,9 +345,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     set_seed(args.seed)
 
-    from baselines.monkeypatch import replace_llama, replace_mistral
-    replace_llama(args.method)
-    replace_mistral(args.method)
+    from baselines.monkeypatch import replace_llama, replace_mistral, replace_qwen
+    #replace_llama(args.method)
+    #replace_mistral(args.method)
+    replace_qwen(args.method)
     
     if args.method == "pyramidinfer":
         args.attn_implementation = "eager"
@@ -372,10 +373,12 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         
-    context_lengths = [8192, 32768, 131072]
+    context_lengths = [4096]
+    #context_lengths = [8192, 32768, 131072]
     # Limit H2O to 8192 context length as requested
     if args.method == "h2o":
-        context_lengths = [8192]
+        #context_lengths = [8192]
+        context_lengths = [4096]
     
     for context_length in context_lengths:
         args.context_length = context_length

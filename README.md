@@ -19,13 +19,29 @@ For more details, please check out our [paper](https://arxiv.org/abs/2502.01068)
 
 ## Usage
 ### 1. Installation
-Installation with the requirements package.
-```
+We recommend setting up a fresh environment to ensure compatibility, especially for GPU acceleration components like Flash Attention.
+
+```bash
 conda create -n fastkv python=3.9
 conda activate fastkv
 cd FastKV
+
+# Step 1: Install PyTorch with CUDA support explicitly
+# Check your CUDA version (e.g., nvcc --version) and choose appropriately:
+
+# Method A: For CUDA 12.1 (Recommended)
+pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Method B: For CUDA 11.8
+# pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Step 2: Install build dependencies
+# Essential for compiling flash-attn if a pre-built wheel is not found
+pip install ninja packaging wheel
+
+# Step 3: Install remaining project dependencies
+# Note: This includes flash-attn==2.6.3 which may take 10-20 minutes to compile.
 pip install -r requirements.txt
-pip install flash-attn==2.6.3
 ```
 
 ### 2. Quick Start
