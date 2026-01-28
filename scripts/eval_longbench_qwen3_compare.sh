@@ -1,7 +1,7 @@
 #Test fullkv (Base)
 CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
     --method fullkv \
-    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
+    --model_path "/root/autodl-tmp/models/qwen3-8b" \
     --attn_implementation "flash_attention_2" \
     --save_dir "outputs/results_longbench_qwen3" \
     --eviction_mode proportional \

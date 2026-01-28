@@ -77,24 +77,7 @@ def scorer(dataset, predictions, answers, all_classes):
 if __name__ == '__main__':
     args = parse_args()
     
-    dataset_list = [
-        "narrativeqa",
-        "qasper",
-        "multifieldqa_en",
-        "hotpotqa",
-        "2wikimqa",
-        "musique",
-        "gov_report",
-        "qmsum",
-        "multi_news",
-        "trec",
-        "triviaqa",
-        "samsum",
-        "passage_count",
-        "passage_retrieval_en",
-        "lcc",
-        "repobench-p"
-        ]
+    dataset_list = list(dataset2metric.keys())
     
     results_list = [
         ["dataset"],

@@ -337,7 +337,10 @@ if __name__ == "__main__":
     save_dir = args.save_dir
     
     if args.dataset:
-        datasets = [args.dataset]
+        if args.dataset == 'all':
+            datasets = list(dataset2maxlen.keys())
+        else:
+            datasets = [args.dataset]
 
     for idx, dataset in enumerate(datasets):
         if args.eviction_mode == "constant":
