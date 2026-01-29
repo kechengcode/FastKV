@@ -373,12 +373,12 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         
-    context_lengths = [4096]
-    #context_lengths = [8192, 32768, 131072]
+    #context_lengths = [4096]
+    context_lengths = [8192, 32768, 131072]
     # Limit H2O to 8192 context length as requested
     if args.method == "h2o":
-        #context_lengths = [8192]
-        context_lengths = [4096]
+        context_lengths = [8192]
+        #context_lengths = [4096]
     
     for context_length in context_lengths:
         args.context_length = context_length

@@ -1,12 +1,17 @@
 #!/bin/bash
 
 # 设置通用参数
-MODEL_PATH="/root/autodl-tmp/models/Qwen3-8B"
+MODEL_PATH="/root/autodl-tmp/models/qwen3-8b"
 SAVE_DIR="outputs/results_longbench_qwen3_all"
 GPU_ID=0
 
 # 创建保存目录
 mkdir -p "$SAVE_DIR"
+
+# 将所有输出重定向到日志文件，同时在终端显示
+LOG_FILE="$SAVE_DIR/run.log"
+exec > >(tee -i "$LOG_FILE") 2>&1
+echo "Log file saved to: $LOG_FILE"
 
 # 定义执行函数
 run_eval() {

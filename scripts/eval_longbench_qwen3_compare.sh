@@ -1,42 +1,42 @@
 #Test fullkv (Base)
-CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
-    --method fullkv \
-    --model_path "/root/autodl-tmp/models/qwen3-8b" \
-    --attn_implementation "flash_attention_2" \
-    --save_dir "outputs/results_longbench_qwen3" \
-    --eviction_mode proportional \
-    --dataset samsum \
-    --retain_rate 0.1
+# CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
+#     --method fullkv \
+#     --model_path "/root/autodl-tmp/models/qwen3-8b" \
+#     --attn_implementation "flash_attention_2" \
+#     --save_dir "outputs/results_longbench_qwen3" \
+#     --eviction_mode proportional \
+#     --dataset samsum \
+#     --retain_rate 0.1
 
-#Test FastKV
-CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
-    --method fastkv \
-    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-    --attn_implementation eager \
-    --save_dir "outputs/results_longbench_qwen3" \
-    --eviction_mode proportional \
-    --tsp_rate 0.2 \
-    --tsp_idx 17 \
-    --dataset samsum \
-    --retain_rate 0.1
+# #Test FastKV
+# CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
+#     --method fastkv \
+#     --model_path "/root/autodl-tmp/models/qwen3-8b" \
+#     --attn_implementation eager \
+#     --save_dir "outputs/results_longbench_qwen3" \
+#     --eviction_mode proportional \
+#     --tsp_rate 0.2 \
+#     --tsp_idx 17 \
+#     --dataset samsum \
+#     --retain_rate 0.1
 
 # Test SnapKV
-CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
-    --method snapkv \
-    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
-    --attn_implementation eager \
-    --save_dir "outputs/results_longbench_qwen3" \
-    --eviction_mode proportional \
-    --dataset samsum \
-    --window_size 8 \
-    --kernel_size 7 \
-    --pooling maxpool \
-    --retain_rate 0.1
+# CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
+#     --method snapkv \
+#     --model_path "/root/autodl-tmp/models/qwen3-8b" \
+#     --attn_implementation eager \
+#     --save_dir "outputs/results_longbench_qwen3" \
+#     --eviction_mode proportional \
+#     --dataset samsum \
+#     --window_size 8 \
+#     --kernel_size 7 \
+#     --pooling maxpool \
+#     --retain_rate 0.1
 
-# Test H2O
+# # Test H2O
 CUDA_VISIBLE_DEVICES=0 python -m eval.run_longbench \
     --method h2o \
-    --model_path "/root/autodl-tmp/models/Qwen3-8B" \
+    --model_path "/root/autodl-tmp/models/qwen3-8b" \
     --attn_implementation eager \
     --save_dir "outputs/results_longbench_qwen3" \
     --eviction_mode proportional \
