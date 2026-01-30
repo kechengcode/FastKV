@@ -85,10 +85,13 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.cuda.manual_seed_all(seed)
 
-def build_chat(tokenizer, prompt):
+def build_chat(tokenizer, prompt, disable_thinking=False):
 
     messages = [{"role": "user", "content": prompt}]
-    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, return_tensors="pt")
+    if disable_thinking:
+        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, return_tensors="pt", enable_thinking=False)
+    else:
+        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, return_tensors="pt")
     
     return prompt
 
@@ -138,7 +141,7 @@ def main(model, args):
 
             # chat models are better off without build prompts on these tasks
             if args.dataset not in ["trec", "triviaqa", "samsum", "lsht", "lcc", "repobench-p"]: 
-                prompt = build_chat(tokenizer, prompt)
+                prompt = build_chat(tokenizer, prompt, args.disable_thinking)
                 
             example["prompt"] = prompt
                 
@@ -260,6 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str, default="")
     parser.add_argument("--data_file", type=str, default="")
     parser.add_argument("--save_dir", type=str, default="outputs/results_longbench")
+    parser.add_argument("--disable_thinking", action="store_true", help="Disable thinking mode for reasoning models")
 
     parser.add_argument("--model_name", type=str, default=None, help="if specified, we will load the model to generate the predictions.")
     parser.add_argument("--model_path", type=str, default=None, help="if specified, we will load the model to generate the predictions.")

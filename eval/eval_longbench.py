@@ -82,12 +82,12 @@ if __name__ == '__main__':
     results_list = [
         ["dataset"],
         ["fullkv"],
-        ["fastkv"],
         ["streamingllm"],
         ["h2o"],
         ["snapkv"],
+        ["pyramidinfer"],
         ["gemfilter"],
-        ["pyramidinfer"]
+        ["fastkv"]
     ]
     
     for dataset in dataset_list:
