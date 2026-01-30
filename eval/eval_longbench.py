@@ -177,3 +177,67 @@ if __name__ == '__main__':
                 except:
                     values.append(str(val))
         print(",".join([method] + values))
+
+    # ==========================================
+    # Added: Aggregated Category Summary Table
+    # ==========================================
+    print("\n" + "="*50)
+    print("Aggregated Category Summary (Table 2 Format)")
+    print("="*50)
+
+    # Define Categories (Standard LongBench-E / English subset)
+    categories = {
+        "Single-Doc QA": ["narrativeqa", "qasper", "multifieldqa_en"],
+        "Multi-Doc QA": ["hotpotqa", "2wikimqa", "musique"],
+        "Summarization": ["gov_report", "qmsum", "multi_news"],
+        "Few-shot": ["trec", "triviaqa", "samsum"],
+        "Synthetic": ["passage_retrieval_en", "passage_count"],
+        "Code": ["lcc", "repobench-p"]
+    }
+
+    # Prepare Header
+    cat_headers = list(categories.keys()) + ["Avg"]
+    print(f"{'Method':<15} | " + " | ".join([f"{h:<13}" for h in cat_headers]))
+    print("-" * 120)
+
+    # Helper to find index of dataset in dataset_list
+    def get_score(method_row, dataset_name):
+        try:
+            idx = dataset_list.index(dataset_name)
+            # method_row has "method_name" at index 0, so score is at idx+1
+            val = method_row[idx+1]
+            if isinstance(val, (int, float, np.floating)):
+                return float(val)
+            return float(val) # Try cast
+        except:
+            return None
+
+    for idx, method in enumerate(["fullkv", "streamingllm", "h2o", "snapkv", "pyramidinfer", "gemfilter", "fastkv"]):
+        row_data = results_list[idx+1]
+        
+        cat_scores = []
+        valid_overall_scores = []
+        
+        for cat, datasets in categories.items():
+            scores = []
+            for ds in datasets:
+                s = get_score(row_data, ds)
+                if s is not None and s >= 0: # Check for valid score
+                    scores.append(s)
+                    valid_overall_scores.append(s)
+            
+            if scores:
+                avg_score = sum(scores) / len(scores)
+                cat_scores.append(f"{avg_score:.2f}")
+            else:
+                cat_scores.append("-")
+        
+        # Calculate Total Avg (Macro average over valid tasks in these categories)
+        if valid_overall_scores:
+            total_avg = sum(valid_overall_scores) / len(valid_overall_scores)
+            cat_scores.append(f"{total_avg:.2f}")
+        else:
+            cat_scores.append("-")
+
+        # Print Row
+        print(f"{method:<15} | " + " | ".join([f"{s:<13}" for s in cat_scores]))
